@@ -93,9 +93,13 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+  try {
+    const result = await db.select().from(users).where(eq(users.openId, openId));
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get user by openId:", error);
+    return undefined;
+  }
 }
 
 /**
@@ -104,21 +108,39 @@ export async function getUserByOpenId(openId: string) {
 export async function getUserById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  
+  try {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get user by id:", error);
+    return undefined;
+  }
 }
 
 export async function getUserByEmail(email: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  
+  try {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get user by email:", error);
+    return undefined;
+  }
 }
 
 export async function getAllStudents() {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(users).where(eq(users.role, 'user'));
+  
+  try {
+    return await db.select().from(users).where(eq(users.role, 'user'));
+  } catch (error) {
+    console.error("[Database] Failed to get all students:", error);
+    return [];
+  }
 }
 
 /**
@@ -127,14 +149,26 @@ export async function getAllStudents() {
 export async function getCourseById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(courses).where(eq(courses.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  
+  try {
+    const result = await db.select().from(courses).where(eq(courses.id, id));
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get course by id:", error);
+    return undefined;
+  }
 }
 
 export async function getAllCourses() {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(courses);
+  
+  try {
+    return await db.select().from(courses);
+  } catch (error) {
+    console.error("[Database] Failed to get all courses:", error);
+    return [];
+  }
 }
 
 /**
@@ -143,7 +177,13 @@ export async function getAllCourses() {
 export async function getSubjectsByCourse(courseId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(subjects).where(eq(subjects.courseId, courseId));
+  
+  try {
+    return await db.select().from(subjects).where(eq(subjects.courseId, courseId));
+  } catch (error) {
+    console.error("[Database] Failed to get subjects by course:", error);
+    return [];
+  }
 }
 
 /**
@@ -152,7 +192,13 @@ export async function getSubjectsByCourse(courseId: number) {
 export async function getEnrollmentsByUser(userId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(enrollments).where(eq(enrollments.userId, userId));
+  
+  try {
+    return await db.select().from(enrollments).where(eq(enrollments.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to get enrollments by user:", error);
+    return [];
+  }
 }
 
 /**
@@ -161,7 +207,13 @@ export async function getEnrollmentsByUser(userId: number) {
 export async function getGradesByEnrollment(enrollmentId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(grades).where(eq(grades.enrollmentId, enrollmentId));
+  
+  try {
+    return await db.select().from(grades).where(eq(grades.enrollmentId, enrollmentId));
+  } catch (error) {
+    console.error("[Database] Failed to get grades by enrollment:", error);
+    return [];
+  }
 }
 
 /**
@@ -170,7 +222,13 @@ export async function getGradesByEnrollment(enrollmentId: number) {
 export async function getAttendanceByEnrollment(enrollmentId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(attendance).where(eq(attendance.enrollmentId, enrollmentId));
+  
+  try {
+    return await db.select().from(attendance).where(eq(attendance.enrollmentId, enrollmentId));
+  } catch (error) {
+    console.error("[Database] Failed to get attendance by enrollment:", error);
+    return [];
+  }
 }
 
 /**
@@ -179,5 +237,11 @@ export async function getAttendanceByEnrollment(enrollmentId: number) {
 export async function getPublishedAnnouncements() {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(announcements).where(eq(announcements.published, true));
+  
+  try {
+    return await db.select().from(announcements).where(eq(announcements.published, true));
+  } catch (error) {
+    console.error("[Database] Failed to get announcements:", error);
+    return [];
+  }
 }

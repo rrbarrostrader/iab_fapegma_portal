@@ -28,29 +28,34 @@ export async function authenticateUser(email: string, password: string) {
     throw new Error("Database not available");
   }
 
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  try {
+    const result = await db.select().from(users).where(eq(users.email, email));
 
-  if (result.length === 0) {
-    throw new Error("Invalid email or password");
+    if (result.length === 0) {
+      throw new Error("Invalid email or password");
+    }
+
+    const user = result[0];
+
+    if (!user.passwordHash) {
+      throw new Error("User has no password set");
+    }
+
+    const isPasswordValid = await verifyPassword(password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      throw new Error("Invalid email or password");
+    }
+
+    if (user.status !== "active") {
+      throw new Error("User account is not active");
+    }
+
+    return user;
+  } catch (error) {
+    console.error("[Auth] Authentication error:", error);
+    throw error;
   }
-
-  const user = result[0];
-
-  if (!user.passwordHash) {
-    throw new Error("User has no password set");
-  }
-
-  const isPasswordValid = await verifyPassword(password, user.passwordHash);
-
-  if (!isPasswordValid) {
-    throw new Error("Invalid email or password");
-  }
-
-  if (user.status !== "active") {
-    throw new Error("User account is not active");
-  }
-
-  return user;
 }
 
 /**
@@ -71,8 +76,7 @@ export async function initializeDefaultAdmin() {
     const existingAdmin = await db
       .select()
       .from(users)
-      .where(eq(users.email, adminEmail))
-      .limit(1);
+      .where(eq(users.email, adminEmail));
 
     if (existingAdmin.length > 0) {
       console.log("[Auth] Admin user already exists");
