@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,30 +12,50 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const loginMutation = trpc.auth.loginWithEmail.useMutation({
-    onSuccess: (data) => {
-      toast.success("Login realizado com sucesso!");
-      // Redireciona para o dashboard apropriado
-      if (data.role === "admin") {
-        setLocation("/admin");
-      } else {
-        setLocation("/student");
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message || "Erro ao fazer login");
-    },
-  });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await loginMutation.mutateAsync({
-        email,
-        password,
+      // Chamada direta à API REST
+      const response = await fetch("/api/trpc/auth.loginWithEmail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          json: {
+            email,
+            password,
+          },
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Erro ao fazer login");
+      }
+
+      const data = await response.json();
+      
+      // Verificar se a resposta contém o resultado esperado
+      if (data.result && data.result.data) {
+        const user = data.result.data;
+        toast.success("Login realizado com sucesso!");
+        
+        // Redireciona para o dashboard apropriado
+        if (user.role === "admin") {
+          setLocation("/admin");
+        } else {
+          setLocation("/student");
+        }
+      } else {
+        throw new Error("Resposta inválida do servidor");
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao fazer login";
+      toast.error(message);
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
