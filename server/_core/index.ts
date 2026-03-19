@@ -58,11 +58,16 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  server.listen(port, () => {
+  server.listen(port, async () => {
     console.log(`Server running on http://localhost:${port}/`);
 
-    // Initialize default admin user
-    await initializeDefaultAdmin();
+    try {
+      // Initialize default admin user
+      await initializeDefaultAdmin();
+      console.log("Default admin initialization check completed.");
+    } catch (error) {
+      console.error("Failed to initialize default admin:", error);
+    }
   });
 }
 
