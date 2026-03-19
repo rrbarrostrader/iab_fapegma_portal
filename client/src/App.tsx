@@ -47,6 +47,8 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/login"} component={Login} />
+      
+      {/* Rotas do Aluno */}
       <Route
         path={"/student"}
         component={() => <ProtectedRoute component={StudentDashboard} requiredRole="user" />}
@@ -63,10 +65,17 @@ function Router() {
         path={"/student/academico"}
         component={() => <ProtectedRoute component={StudentAcademic} requiredRole="user" />}
       />
+      
+      {/* Rotas do Admin - CORRIGIDAS: ambas as versões */}
+      <Route
+        path={"/admin"}
+        component={() => <ProtectedRoute component={AdminDashboard} requiredRole="admin" />}
+      />
       <Route
         path={"/admin/*"}
         component={() => <ProtectedRoute component={AdminDashboard} requiredRole="admin" />}
       />
+      
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
