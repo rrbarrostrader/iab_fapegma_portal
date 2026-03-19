@@ -18,7 +18,7 @@ export default function Login() {
     onSuccess: async (data) => {
       toast.success("Login realizado com sucesso!");
       // Atualiza o estado de autenticação
-      // await refresh();
+      await refresh();
       
       // Redireciona baseado no papel do usuário
       if (data.role === "admin") {
