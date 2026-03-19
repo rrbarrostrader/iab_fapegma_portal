@@ -57,8 +57,14 @@ export const authRouter = router({
 
       // Define o cookie de sessão
       const cookieOptions = getSessionCookieOptions(ctx.req);
+      
+      // Forçar SameSite=Lax e Secure se estiver em produção
+      const isProd = process.env.NODE_ENV === "production";
+      
       ctx.res.cookie(COOKIE_NAME, sessionToken, {
         ...cookieOptions,
+        secure: isProd,
+        sameSite: "lax",
         maxAge: 365 * 24 * 60 * 60 * 1000, // 1 ano
       });
 
@@ -82,14 +88,19 @@ export const authRouter = router({
    */
   logout: publicProcedure.mutation(({ ctx }) => {
     const { domain, httpOnly, path, sameSite, secure } = getSessionCookieOptions(ctx.req);
+    
+    // Forçar as mesmas opções usadas na criação para garantir a remoção
+    const isProd = process.env.NODE_ENV === "production";
+    
     ctx.res.clearCookie(COOKIE_NAME, {
       domain,
       httpOnly,
       path,
-      sameSite,
-      secure,
-      maxAge: -1,
+      sameSite: "lax",
+      secure: isProd,
+      maxAge: 0,
     });
+    
     return {
       success: true,
     } as const;
