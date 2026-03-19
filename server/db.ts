@@ -1,23 +1,4 @@
-t.length > 0 ? result[0] : undefined;
-} catch (error) {
-      console.error("[Database] Failed to get user by openId:", error);
-      return undefined;
-}
-}
-
-/**
- * Queries para Usuários
-  */
-export async function getUserById(id: number) {
-    const db = await getDb();
-    if (!db) return undefined;
-    
-    try {
-          const result = await db.select().from(users).where(eq(users.id, id));
-          return result.length > 0 ? result[0] : undefined;
-    } catch (error) {
-          console.error("[Database] Failed to get user by id:", error);
-          return unimport { eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
