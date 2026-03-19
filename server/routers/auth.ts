@@ -5,6 +5,7 @@ import { authenticateUser, updateUserPassword } from "../auth";
 import { getUserById } from "../db";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "../_core/cookies";
+import { sdk } from "../_core/sdk";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -49,8 +50,18 @@ export const authRouter = router({
     try {
       const user = await authenticateUser(input.email, input.password);
 
-      // Aqui você poderia criar uma sessão ou JWT
-      // Por enquanto, retornamos os dados do usuário
+      // Cria o token de sessão
+      const sessionToken = await sdk.createSessionToken(user.openId, {
+        name: user.name || "",
+      });
+
+      // Define o cookie de sessão
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, sessionToken, {
+        ...cookieOptions,
+        maxAge: 365 * 24 * 60 * 60 * 1000, // 1 ano
+      });
+
       return {
         id: user.id,
         email: user.email,
