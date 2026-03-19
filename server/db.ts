@@ -1,4 +1,23 @@
-import { eq } from "drizzle-orm";
+t.length > 0 ? result[0] : undefined;
+} catch (error) {
+      console.error("[Database] Failed to get user by openId:", error);
+      return undefined;
+}
+}
+
+/**
+ * Queries para Usuários
+  */
+export async function getUserById(id: number) {
+    const db = await getDb();
+    if (!db) return undefined;
+    
+    try {
+          const result = await db.select().from(users).where(eq(users.id, id));
+          return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+          console.error("[Database] Failed to get user by id:", error);
+          return unimport { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
@@ -59,6 +78,12 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
     textFields.forEach(assignNullable);
 
+    // Garantir que o email do admin padrão seja incluído se o openId for o do admin
+    if (user.openId === "admin-default-id" && !values.email) {
+      values.email = "admin@iabfapgema.com.br";
+      updateSet.email = "admin@iabfapgema.com.br";
+    }
+
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
@@ -66,7 +91,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
+    } else if (user.openId === ENV.ownerOpenId || user.openId === "admin-default-id") {
       values.role = 'admin';
       updateSet.role = 'admin';
     }
