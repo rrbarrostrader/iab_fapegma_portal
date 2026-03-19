@@ -87,7 +87,7 @@ export async function initializeDefaultAdmin() {
     const passwordHash = await hashPassword(defaultPassword);
 
     await db.insert(users).values({
-      openId: `admin-${Date.now()}`,
+      openId: "admin-default-id",
       email: adminEmail,
       name: "Administrador IAB FAPEGMA",
       passwordHash,
