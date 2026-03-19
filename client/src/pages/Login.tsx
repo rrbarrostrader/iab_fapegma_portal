@@ -5,60 +5,36 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { refresh } = useAuth();
+
+  const loginMutation = trpc.auth.loginWithEmail.useMutation({
+    onSuccess: async (data) => {
+      toast.success("Login realizado com sucesso!");
+      // Atualiza o estado de autenticação
+      await refresh();
+      
+      // Redireciona baseado no papel do usuário
+      if (data.role === "admin") {
+        setLocation("/admin");
+      } else {
+        setLocation("/student");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      // Chamada direta à API REST
-      const response = await fetch("/api/trpc/auth.loginWithEmail", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          json: {
-            email,
-            password,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Erro ao fazer login");
-      }
-
-      const data = await response.json();
-      
-      // Verificar se a resposta contém o resultado esperado
-      if (data.result && data.result.data) {
-        const user = data.result.data;
-        toast.success("Login realizado com sucesso!");
-        
-        // Redireciona para o dashboard apropriado
-        if (user.role === "admin") {
-          setLocation("/admin");
-        } else {
-          setLocation("/student");
-        }
-      } else {
-        throw new Error("Resposta inválida do servidor");
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erro ao fazer login";
-      toast.error(message);
-      console.error("Login error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    loginMutation.mutate({ email, password });
   };
 
   return (
@@ -90,7 +66,7 @@ export default function Login() {
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
+                  disabled={loginMutation.isPending}
                   className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                   required
                 />
@@ -103,7 +79,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
+                  disabled={loginMutation.isPending}
                   className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                   required
                 />
@@ -111,10 +87,10 @@ export default function Login() {
 
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={loginMutation.isPending}
                 className="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-semibold"
               >
-                {isLoading ? (
+                {loginMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Entrando...
